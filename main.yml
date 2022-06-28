@@ -1,0 +1,32 @@
+---
+- name: Encrypt/Decrypt String
+  hosts: all
+  become: yes
+  become_user: root
+  vars:
+    operation: ""
+    str: ""
+    passwd: !vault |
+          $ANSIBLE_VAULT;1.2;AES256
+          38353131653663343966383039653265653731333633366362383134663965653038636232333562
+          3362323030353564386538353665613262303961386632360a303635633331353331613266656238
+          64623238623666326134356133313135333736616435643233393738313636333436346338336330
+          3164623461303961640a336430646332386363333139373964323337623432343966373734666437
+          3439
+  tasks:
+  - name: copy python file from github
+    git:
+        repo: https://github.com/navaneethsunil/pythonfile
+        dest: /home/pythonfiles/
+
+  - name: run a python script
+    command: python3 /home/pythonfiles/endec.py {{ operation }} {{ str }} {{ passwd }}
+    register: result
+
+  - name: Remove directory
+    file:
+        path: /home/pythonfiles
+        state: absent
+
+  - debug:
+        msg: "Encrypted/Decrypted String: {{ result.stdout_lines }}"
